@@ -1,38 +1,30 @@
 #include "linked.h"
 
-typedef struct Person {
-    char* name;
-    int age;
-} Person;
-
-void freePerson(Person* data) {
-    free(data->name);
-    free(data);
-}
-
-void printPerson(Person* data) {
-    printf("Name: %s, Age: %d\n", data->name, data->age);
-}
-
 int main() {
-    LinkedList* list = createList((void (*)(void*))freePerson);
+    // Create a new linked list with integer data
+    LinkedList* list = createList(free);
 
-    Person* p1 = malloc(sizeof(Person));
-    p1->name = malloc(50);
-    strcpy(p1->name, "John");
-    p1->age = 30;
+    // Add some data to the list
+    for (int i = 0; i < 10; i++) {
+        int* data = malloc(sizeof(int));
+        *data = i;
+        push(list, data);
+    }
 
-    Person* p2 = malloc(sizeof(Person));
-    p2->name = malloc(50);
-    strcpy(p2->name, "Jane");
-    p2->age = 25;
+    // Print list backwards
+    Node* current = list->tail;
+    while (current != NULL) {
+        int* data = current->data;
+        printf("%d\n", *data);
+        current = current->prev;
+    }
 
-    push(list, p1);
-    push(list, p2);
-
-    printList(list, (void (*)(void*))printPerson);
+    // forward
     printList(list, NULL);
 
-    freeList(list);
-    return 0;
+    // Free the list
+    if (freeList(list) == 1) {
+        printf("Error freeing list\n");
+        return 1;
+    }
 }

@@ -27,14 +27,14 @@ LinkedList* createList(void (*freeData)(void*));
 
 void push(LinkedList* list, void* data);
 
-void insert(LinkedList* list, void* data, int index);
+int insert(LinkedList* list, void* data, int index);
 
 void* getValue(LinkedList* list, int index);
 
-void freeList(LinkedList* list);
+int freeList(LinkedList* list);
 
 void printList(LinkedList* list, void (*printData)(void*));
 
-void removeNode(LinkedList* list, int index);
+int removeNode(LinkedList* list, int index);
 
 #endif

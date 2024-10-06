@@ -25,14 +25,12 @@ Node* createNode(void* data, Node* prev, Node* next) {
 
 Node* getNode(LinkedList* list, int index) {
   int i = 0;
-  int count = 0;
   Node* current;
 
   if (index < list->size / 2) {
     current = list->head;
     while (current != NULL && i < index) {
       current = current->next;
-      count++;
       i++;
     }
   } else {
@@ -40,12 +38,9 @@ Node* getNode(LinkedList* list, int index) {
     i = list->size - 1;
     while (current != NULL && i > index) {
       current = current->prev;
-      count++;
       i--;
     }
   }
-
-  // printf("Count: %d\n", count);
 
   if (current == NULL) {
     return NULL;
@@ -76,11 +71,15 @@ void push(LinkedList* list, void* data) {
   list->size++;
 }
 
-void insert(LinkedList* list, void* data, int index) {
+int insert(LinkedList* list, void* data, int index) {
+  if (index == list->size+1) {
+    push(list, data);
+    return 0;
+  }
   Node* current = getNode(list, index);
 
   if (current == NULL) {
-    return;
+    return 1;
   }
 
   Node* node = createNode(data, current->prev, current);
@@ -91,7 +90,7 @@ void insert(LinkedList* list, void* data, int index) {
 
   list->size++;
 
-  return;
+  return 0;
 }
 
 void* getValue(LinkedList* list, int index) {
@@ -104,19 +103,25 @@ void* getValue(LinkedList* list, int index) {
   return current->data;
 }
 
-void freeList(LinkedList* list) {
+int freeList(LinkedList* list) {
+  if (list == NULL) {
+    return 1;
+  }
+
   Node* current = list->head;
   int i = 0;
   while (current != NULL && i < list->size) {
     Node* next = current->next;
     if (list->freeData != NULL) list->freeData(current->data);
-    else free(current->data);
+    else return 1;
     free(current);
     i++;
     current = next;
   }
 
   free(list);
+
+  return 0;
 }
 
 void printList(LinkedList* list, void (*printFunction)(void*)) {
@@ -130,11 +135,11 @@ void printList(LinkedList* list, void (*printFunction)(void*)) {
   }
 }
 
-void removeNode(LinkedList* list, int index) {
+int removeNode(LinkedList* list, int index) {
   Node* current = getNode(list, index);
 
   if (current == NULL) {
-    return;
+    return 1;
   }
 
   if (current == list->head) {
@@ -158,4 +163,6 @@ void removeNode(LinkedList* list, int index) {
 
   free(current);
   list->size--;
+
+  return 0;
 }
