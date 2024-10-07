@@ -27,16 +27,27 @@ Node* getNode(LinkedList* list, int index) {
   int i = 0;
   Node* current;
 
-  if (index < list->size / 2) {
-    current = list->head;
-    while (current != NULL && i < index) {
-      current = current->next;
-      i++;
+  if (list->cachedNode != NULL && list->cachedIndex != -1) {
+    int distCached = abs(list->cachedIndex - index);
+    int distHead = abs(0 - index);
+    int distTail = abs(list->size - 1 - index);
+
+    if (distCached < distHead && distCached < distTail) {
+      current = list->cachedNode;
+      i = list->cachedIndex;
     }
+  } else if (index < list->size / 2) {
+    current = list->head;
   } else {
     current = list->tail;
     i = list->size - 1;
-    while (current != NULL && i > index) {
+  }
+
+  while (current != NULL && i != index) {
+    if (i < index) {
+      current = current->next;
+      i++;
+    } else {
       current = current->prev;
       i--;
     }
@@ -46,7 +57,19 @@ Node* getNode(LinkedList* list, int index) {
     return NULL;
   }
 
+  if (i != 0 && i != list->size - 1) {
+    list->cachedNode = current;
+    list->cachedIndex = i;
+  }
+
   return current;
+}
+
+void validateCache(LinkedList* list, int index, Node* current) {
+  if (list->cachedNode == current || list->cachedIndex == index) {
+    list->cachedNode = NULL;
+    list->cachedIndex = -1;
+  }
 }
 
 LinkedList* createList(void (*freeData)(void*)) {
@@ -55,6 +78,9 @@ LinkedList* createList(void (*freeData)(void*)) {
   list->tail = NULL;
   list->size = 0;
   list->freeData = freeData;
+
+  list->cachedNode = NULL;
+  list->cachedIndex = -1;
 
   return list;
 }
@@ -157,6 +183,8 @@ int removeNode(LinkedList* list, int index) {
   if (current->next != NULL) {
     current->next->prev = current->prev;
   }
+
+  validateCache(list, index, current);
 
   if (list->freeData != NULL) list->freeData(current->data);
   else free(current->data);

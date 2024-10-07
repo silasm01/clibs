@@ -17,6 +17,10 @@ Node* createNode(void* data, Node* prev, Node* next);
 typedef struct LinkedList {
   struct Node* head;
   struct Node* tail;
+
+  struct Node* cachedNode;
+  int cachedIndex;
+
   size_t size;
   void (*freeData)(void*);
 } LinkedList;
