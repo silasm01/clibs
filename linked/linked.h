@@ -10,9 +10,10 @@ typedef struct Node {
   void* data;
   struct Node* next;
   struct Node* prev;
+  void (*freeData)(void*);
 } Node;
 
-Node* createNode(void* data, Node* prev, Node* next);
+Node* createNode(void* data, Node* prev, Node* next, void (*freeData)(void*));
 
 typedef struct LinkedList {
   struct Node* head;

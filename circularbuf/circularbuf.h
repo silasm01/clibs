@@ -14,7 +14,7 @@ typedef struct CircularBuffer {
     void (*freeData)(void*);
 } CircularBuffer;
 
-CircularBuffer* createCircularBuf(int capacity);
+CircularBuffer* createCircularBuf(int capacity, void (*freeData)(void*));
 
 void push(CircularBuffer* circularBuf, void* data);
 
@@ -33,5 +33,7 @@ int isEmpty(CircularBuffer* circularBuf);
 int isFull(CircularBuffer* circularBuf);
 
 void resize(CircularBuffer* circularBuf, int newCapacity);
+
+char* graph(CircularBuffer* circularBuf, char* (*printData)(void*));
 
 #endif // CIRCULARBUF_H

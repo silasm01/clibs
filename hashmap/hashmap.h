@@ -33,4 +33,6 @@ void resize(HashMap* map);
 
 void printHashMap(HashMap* map, char* (*printData)(void*));
 
+void setCustomHashFree(HashMap* map, char* key, void (*freeData)(void*));
+
 #endif

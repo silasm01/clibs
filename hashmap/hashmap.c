@@ -139,3 +139,25 @@ void printHashMap(HashMap* map, char* (*printData)(void*)) {
 
     return;
 }
+
+void setCustomHashFree(HashMap* map, char* key, void (*freeData)(void*)) {
+    int index = hash(map, key);
+
+    Node* current = map->data[index]->head;
+
+    for (int i = 0; i < map->data[index]->size; i++) {
+        if (current == NULL) {
+            return;
+        }
+
+        OuterNode* outerNode = (OuterNode*)current->data;
+        if (strcmp(outerNode->key, key) == 0) {
+            map->data[index]->freeData = freeData;
+            return;
+        }
+
+        current = current->next;
+    }
+
+    return;
+}

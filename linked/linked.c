@@ -1,6 +1,6 @@
 #include "linked.h"
 
-Node* createNode(void* data, Node* prev, Node* next) {
+Node* createNode(void* data, Node* prev, Node* next, void (*freeData)(void*)) {
   Node* node = malloc(sizeof(Node));
   node->data = data;
 
@@ -15,6 +15,8 @@ Node* createNode(void* data, Node* prev, Node* next) {
     next->prev = node;
     node->next = next;
   }
+
+  node->freeData = freeData;
 
   return node;
 }
@@ -82,7 +84,7 @@ LinkedList* createList(void (*freeData)(void*)) {
 }
 
 void push(LinkedList* list, void* data) {
-  Node* node = createNode(data, list->tail, NULL);
+  Node* node = createNode(data, list->tail, NULL, list->freeData);
 
   if (list->head == NULL) {
     list->head = node;
@@ -104,7 +106,7 @@ int insert(LinkedList* list, void* data, int index) {
     return 1;
   }
 
-  Node* node = createNode(data, current->prev, current);
+  Node* node = createNode(data, current->prev, current, list->freeData);
 
   if (current == list->head) {
     list->head = node;
@@ -189,4 +191,14 @@ int removeNode(LinkedList* list, int index) {
   list->size--;
 
   return 0;
+}
+
+void setCustomFree(LinkedList* list, int index, void (*freeData) (void*)) {
+  Node* current = getNode(list, index);
+
+  if (current == NULL) {
+    return;
+  }
+
+  current->freeData = freeData;
 }
