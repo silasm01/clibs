@@ -8,68 +8,93 @@ void freeChar(void* data) {
 }
 
 char* printChar(void* data) {
-    return data;
+    jsonObject* data2 = (jsonObject*)data;
+    return data2->value;
 }
 
-HashMap* parseJson(char* json) {
+char* trim(char* str) {
+    char* end;
+
+    // Trim leading space
+    while (isspace((unsigned char)*str)) {
+        str++;
+    }
+
+    if (*str == 0) {  // All spaces?
+        return str;
+    }
+
+    // Trim trailing space
+    end = str + strlen(str) - 1;
+    while (end > str && isspace((unsigned char)*end)) {
+        end--;
+    }
+
+    // Write new null terminator character
+    end[1] = '\0';
+
+    return str;
+}
+
+HashMap* parseJson(char* json, int* index) {
     HashMap* hashMap = createHashMap(10, freeChar);
 
-    char* token = strtok(json, "{}:,\"");
+    json = trim(json);
+    strcpy(json + *index, trim(json + *index));
+    (*index)++;
 
-    char* key = NULL;
-    char* value = NULL;
+    while (json[*index - 1] != '}')
+    {
 
-    while (token != NULL) {
-        if (strcmp(token, " ") == 0) {
-                token = strtok(NULL, "}:,\"");
-                continue;
+        char* key = malloc(100);
+        int keyIndex = 0;
+        strcpy(json + *index, trim(json + *index));
+        while (json[*index] != ':') {
+            if (json[*index] != '"') {
+                key[keyIndex] = json[*index];
+                keyIndex++;
+            }
+            (*index)++;
         }
-        if (token[0] == '\n') {
-            token = &token[1];
-        }
-        while (token[0] == ' ') {
-        {
-            token = &token[1];
-        }
-        }
+        key[keyIndex] = '\0';
+        key = trim(key);
+        (*index)++;
+        
+        char* value = malloc(100);
+        int valueIndex = 0;
+        int nested = 0;
+        strcpy(json + *index, trim(json + *index));
+        while (json[*index] != ',' && json[*index] != '}') {
+            if (json[*index] == '{') {
+                nested = 1;
+                // (*index)++;
+                HashMap* nested = parseJson(json, index);
+                jsonObject* object = malloc(sizeof(jsonObject));
+                object->value = nested;
+                object->nested = 1;
+                push_hash(hashMap, key, object);
+                break;
+            }
 
-        if (strcmp(token, "") == 0) {
-            token = strtok(NULL, "}:,\"");
-            continue;
+            if (json[*index] != '"') {
+                value[valueIndex] = json[*index];
+                valueIndex++;
+            }
+            (*index)++;
         }
+        value[valueIndex] = '\0';
+        value = trim(value);
+        (*index)++;
 
-        if (key == NULL) {
-            key = strdup(token);  // Save the key
-        } else {
-          if (strchr(&token[0], '{') != NULL) {
-            token = strtok(NULL, "{");
-            value = strdup(token);
-            // Recursively parse the nested JSON object
-            HashMap* nestedHashMap = parseJson(value);
-            jsonObject* nestedObject = malloc(sizeof(jsonObject));
-            nestedObject->value = nestedHashMap;
-            nestedObject->nested = 1;
-            push_hash(hashMap, key, nestedObject);
-
-            // setCustomFree(nestedHashMap, key, freeHashMap);
-          } else {
-            value = strdup(token);
+        if (nested == 0) {
             jsonObject* object = malloc(sizeof(jsonObject));
-            // trim space from value
-            if (value[strlen(value) - 1] == ' ') {
-                value[strlen(value) - 1] = '\0';
-            }
-            if (value[0] == ' ') {
-                value = &value[1];
-            }
             object->value = value;
             object->nested = 0;
+
             push_hash(hashMap, key, object);
-          }
-            key = NULL;
         }
-        token = strtok(NULL, "}:,\"");
     }
+    strcpy(json + *index, trim(json + *index));
 
     return hashMap;
 }
@@ -80,7 +105,6 @@ char* toJSON(HashMap* hashMap) {
 
     for (int i = 0; i < hashMap->capacity; i++) {
         if (hashMap->data[i] != NULL) {
-            printf("i: %d\n", i);
             Node* current = hashMap->data[i]->head;
             while (current != NULL) {
                 OuterNode* outerNode = (OuterNode*)
@@ -91,8 +115,6 @@ char* toJSON(HashMap* hashMap) {
                 strcat(json, "\"");
                 strcat(json, key);
                 strcat(json, "\": ");
-
-                printf("key: %s\n", key);
 
                 if (object->nested == 1) {
                     HashMap* value = (HashMap*)object->value;
