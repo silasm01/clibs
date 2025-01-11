@@ -7,7 +7,6 @@ unsigned long hash(HashMap* map, char *str) {
     while ((c = *str++)) {
         hash = ((hash << 5) + hash) + c;
     }
-
     return hash % map->capacity;
 }
 
