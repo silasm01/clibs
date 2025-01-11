@@ -14,6 +14,8 @@ Node* createNode(void* data, Node* prev, Node* next, void (*freeData)(void*)) {
   if (next != NULL) {
     next->prev = node;
     node->next = next;
+  } else {
+    node->next = NULL; // Ensure next is initialized to NULL if not provided
   }
 
   node->freeData = freeData;
@@ -96,10 +98,11 @@ void push(LinkedList* list, void* data) {
 }
 
 int insert(LinkedList* list, void* data, int index) {
-  if (index == list->size+1) {
+  if (index == list->size) {
     push(list, data);
     return 0;
   }
+
   Node* current = getNode(list, index);
 
   if (current == NULL) {
@@ -148,11 +151,11 @@ int freeList(LinkedList* list) {
   return 0;
 }
 
-void printList(LinkedList* list, void (*printFunction)(void*)) {
+void printList(LinkedList* list, void (*printFunction)(void*, int)) {
   Node* current = list->head;
   int i = 0;
   while (current != NULL && i < list->size) {
-    if (printFunction != NULL) printFunction(current->data);
+    if (printFunction != NULL) printFunction(current->data, i);
     else printf("%d\n", *(int*)current->data);
     current = current->next;
     i++;
@@ -201,4 +204,55 @@ void setCustomFree(LinkedList* list, int index, void (*freeData) (void*)) {
   }
 
   current->freeData = freeData;
+}
+
+void sortLinkedList(LinkedList* list, int (*compare)(void*, void*)) {
+    if (list == NULL || list->size < 2) {
+        return;
+    }
+
+    int swapped;
+    Node* current;
+
+    do {
+        swapped = 0;
+        current = list->head;
+
+        while (current != NULL && current->next != NULL) {
+            if (compare(current->data, current->next->data) > 0) {
+                // Swap the data pointers
+                void* temp = current->data;
+                current->data = current->next->data;
+                current->next->data = temp;
+
+                swapped = 1;
+            }
+            current = current->next;
+        }
+    } while (swapped);
+}
+
+void* pop(LinkedList* list) {
+  if (list->size == 0) {
+    return NULL;
+  }
+
+  Node* node = list->tail;
+  void* data = malloc(sizeof(node->data));
+  memcpy(data, node->data, sizeof(&node->data));
+
+  if (list->size == 1) {
+    list->head = NULL;
+    list->tail = NULL;
+  } else {
+    list->tail = node->prev;
+    list->tail->next = NULL;
+  }
+
+  if (list->freeData != NULL) list->freeData(data);
+  free(node);
+
+  list->size--;
+
+  return data;
 }

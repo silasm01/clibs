@@ -38,8 +38,12 @@ void* getValue(LinkedList* list, int index);
 
 int freeList(LinkedList* list);
 
-void printList(LinkedList* list, void (*printData)(void*));
+void printList(LinkedList* list, void (*printData)(void*, int));
 
 int removeNode(LinkedList* list, int index);
+
+void sortLinkedList(LinkedList* list, int (*compare)(void*, void*));
+
+void* pop(LinkedList* list);
 
 #endif
